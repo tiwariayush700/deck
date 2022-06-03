@@ -1,0 +1,120 @@
+linters:
+  enable:
+    - bodyclose
+    - deadcode
+    - dogsled
+    - dupl
+    - errcheck
+    - exportloopref
+    - gocritic
+    - gofmt
+    - goimports
+    - golint
+    - gosec
+    - gosimple
+    - govet
+    - importas
+    - ineffassign
+    - lll
+    - megacheck
+    - misspell
+    - nakedret
+    - nestif
+    - nlreturn
+    - predeclared
+    - rowserrcheck
+    - sqlclosecheck
+    - staticcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - wastedassign
+    - whitespace
+    - wsl
+
+linters-settings:
+  dogsled:
+    # checks assignments with too many blank identifiers; default is 2
+    max-blank-identifiers: 2
+
+  errcheck:
+    ignoretests: true
+
+  gocritic:
+    # Which checks should be enabled; can't be combined with 'disabled-checks';
+    # See https://go-critic.github.io/overview#checks-overview
+    # To check which checks are enabled run `GL_DEBUG=gocritic golangci-lint run`
+    # By default list of stable checks is used.
+    enabled-checks:
+      - appendCombine
+      - builtinShadow
+      - commentedOutCode
+      - commentedOutImport
+      - equalFold
+      - importShadow
+      - methodExprCall
+      - nestingReduce
+      - paramTypeCombine
+      - yodaStyleExpr
+    # Settings passed to gocritic.
+    # The settings key is the name of a supported gocritic checker.
+    # The list of supported checkers can be find in https://go-critic.github.io/overview.
+    settings:
+      nestingReduce:
+        # min number of statements inside a branch to trigger a warning (default 5)
+        bodyWidth: 4
+
+  goimports:
+    # put imports beginning with prefix after 3rd-party packages;
+    # it's a comma-separated list of prefixes
+    local-prefixes: gitlab.com/balance-inc
+
+  govet:
+    # report about shadowed variables
+    check-shadowing: true
+
+  golint:
+    # minimal confidence for issues, default is 0.8
+    min-confidence: 0.8
+
+  lll:
+    # max line length, lines longer will be reported. Default is 120.
+    # '\t' is counted as 1 character by default, and can be changed with the tab-width option
+    line-length: 86
+
+  misspell:
+    locale: US
+
+  nestif:
+    min-complexity: 2
+
+run:
+  skip-dirs:
+    - ports/repositorytest
+
+issues:
+  exclude-rules:
+    - path: "_fixture.go"
+      linters:
+        - lll
+    - path: "_mock.go"
+      linters:
+        - lll
+    - path: "internal/mocks"
+      linters:
+        - lll
+    - path: "internal/fixtures"
+      linters:
+        - lll
+    - path: "_fixtures.go"
+      linters:
+        - lll
+    - path: "_test.go"
+      linters:
+        - lll
+    - source: "// "
+      linters:
+        - lll
