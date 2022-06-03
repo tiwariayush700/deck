@@ -1,3 +1,6 @@
+###
+data-store:
+	docker-compose up
 ###vendor dependencies
 vendor:
 	go mod vendor
