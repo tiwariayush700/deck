@@ -4,13 +4,15 @@ import (
 	"context"
 
 	"gorm.io/gorm"
+
+	"deck/core/database"
 )
 
 type Repository interface {
-	Create(ctx context.Context, out interface{}, uow *UnitOfWork) error
-	Get(ctx context.Context, out interface{}, id interface{}, uow *UnitOfWork) error
-	Update(ctx context.Context, out interface{}, id interface{}, uow *UnitOfWork) error
-	Delete(ctx context.Context, out interface{}, id interface{}, uow *UnitOfWork) error //soft delete
+	Create(ctx context.Context, out interface{}, uow *UnitOfWork) database.Error
+	Get(ctx context.Context, out interface{}, id interface{}, uow *UnitOfWork) database.Error
+	Update(ctx context.Context, out interface{}, id interface{}, uow *UnitOfWork) database.Error
+	Delete(ctx context.Context, out interface{}, id interface{}, uow *UnitOfWork) database.Error //soft delete
 }
 
 // UnitOfWork represents a connection
