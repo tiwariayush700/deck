@@ -15,7 +15,7 @@ linters:
     - govet
     - importas
     - ineffassign
-    - lll
+#    - lll
     - megacheck
     - misspell
     - nakedret
