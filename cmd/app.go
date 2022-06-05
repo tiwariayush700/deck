@@ -8,8 +8,6 @@ import (
 	`github.com/gin-gonic/gin`
 	`gorm.io/gorm`
 
-	"github.com/hashicorp/go-uuid"
-
 	`deck/core/config`
 	`deck/core/database`
 	`deck/handler`
@@ -73,7 +71,7 @@ func (a *app) autoMigrate() error {
 	//migrate 52 cards
 	for _, suit := range model.Suits {
 		for rank := model.MinRank; rank <= model.MaxRank; rank++ {
-			cardID, _ := uuid.GenerateUUID()
+			cardID := util.GetCode(suit, rank)
 			code := util.GetCode(suit, rank)
 			card := model.Card{
 				BaseModel: database.BaseModel{
@@ -86,7 +84,7 @@ func (a *app) autoMigrate() error {
 				Code: code,
 			}
 
-			if err := a.pgDB.FirstOrCreate(&card, "code = ?", card.Code).Error; err != nil {
+			if err := a.pgDB.FirstOrCreate(&card, "id = ?", card.ID).Error; err != nil {
 				return err
 			}
 		}
