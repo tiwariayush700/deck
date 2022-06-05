@@ -12,4 +12,4 @@ test:
 	go test ./...
 ####
 run:
-	go run main/*.go -file=local.json
+	go run cmd/*.go -file=local.json

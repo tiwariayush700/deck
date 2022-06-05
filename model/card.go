@@ -43,7 +43,7 @@ const (
 
 type Card struct {
 	database.BaseModel
-	Suit Suit   `json:"suit" gorm:"type:text;check:type = 'SPADE' or type = 'DIAMOND' or type = 'CLUB' or type = 'HEART';not null"`
+	Suit Suit   `json:"suit" gorm:"suit:text;not null"`
 	Rank Rank   `json:"value"`
 	Code string `json:"code"`
 }
@@ -61,6 +61,6 @@ type DeckCard struct {
 	DeckID string `json:"deck_id"`
 	CardID string `json:"card_id"`
 
-	Topup *Deck `json:"-"`
-	Card  *Card `json:"-"`
+	Deck *Deck `json:"-"`
+	Card *Card `json:"-"`
 }

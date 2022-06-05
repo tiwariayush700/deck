@@ -12,13 +12,17 @@ import (
 const defaultLogLevel = "info"
 
 type Config struct {
-	Port             string `json:"port"`
+	Port     string `json:"port"`
+	LogLevel string `json:"log_level"`
+	PGConfig
+}
+
+type PGConfig struct {
 	PostgresUser     string `json:"postgres_user"`
 	PostgresPassword string `json:"postgres_password"`
 	PostgresServer   string `json:"postgres_server"`
 	PostgresPort     string `json:"postgres_port"`
 	PostgresDB       string `json:"postgres_db"`
-	LogLevel         string `json:"log_level"`
 }
 
 var (
