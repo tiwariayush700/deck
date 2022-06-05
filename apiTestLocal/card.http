@@ -1,0 +1,12 @@
+#################PING
+GET https://{{host}}/ping
+Content-Type: application/json
+
+#################CREATE DECK
+POST https://{{host}}/decks
+Content-Type: application/json
+
+{
+  "shuffle": false,
+  "partial": true
+}

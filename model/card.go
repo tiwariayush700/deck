@@ -3,6 +3,10 @@
 package model
 
 import (
+	`time`
+
+	`github.com/hashicorp/go-uuid`
+
 	`deck/core/database`
 )
 
@@ -50,7 +54,22 @@ type Card struct {
 
 type Deck struct {
 	database.BaseModel
-	Shuffle bool `json:"shuffle"`
+	Shuffled  bool `json:"shuffled"`
+	Remaining int  `json:"remaining"`
+}
+
+func NewDeck(shuffled bool, remaining int) *Deck {
+	deckID, _ := uuid.GenerateUUID()
+
+	return &Deck{
+		BaseModel: database.BaseModel{
+			ID:        deckID,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		Shuffled:  shuffled,
+		Remaining: remaining,
+	}
 }
 
 type DeckCard struct {
@@ -63,4 +82,18 @@ type DeckCard struct {
 
 	Deck *Deck `json:"-"`
 	Card *Card `json:"-"`
+}
+
+func NewDeckCard(deckID string, cardID string) *DeckCard {
+	deckCardID, _ := uuid.GenerateUUID()
+
+	return &DeckCard{
+		BaseModel: database.BaseModel{
+			ID:        deckCardID,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		DeckID: deckID,
+		CardID: cardID,
+	}
 }

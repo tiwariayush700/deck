@@ -51,7 +51,7 @@ type HTTPResourceNotFound struct {
 }
 
 // Error returns the error string
-func (e HTTPResourceNotFound) Error() string {
+func (e *HTTPResourceNotFound) Error() string {
 	return e.ErrorKey
 }
 
@@ -69,4 +69,8 @@ type HTTPError struct {
 // Error returns the error string
 func (err HTTPError) Error() string {
 	return fmt.Sprintf("key : %s message %s", err.ErrorKey, err.ErrorMessage)
+}
+
+type Error interface {
+	Error() string
 }
