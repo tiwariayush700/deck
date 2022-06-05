@@ -20,10 +20,10 @@ func (c *cardRepositoryImpl) GetDeckView(ctx context.Context, deckID string, uow
 	type response struct {
 		DeckID    string     `gorm:"column:deck_id" json:"deck_id"`
 		Shuffled  bool       `gorm:"column:deck_id" json:"shuffled"`
-		Suit      model.Suit `gorm:"column:deck_id" json:"suit"`
+		Suit      model.Suit `gorm:"column:suit" json:"suit"`
 		Rank      model.Rank `gorm:"column:rank" json:"rank"`
 		Code      string     `gorm:"column:code" json:"code"`
-		Remaining int        `gorm:"column:count" json:"remaining"`
+		Remaining int        `gorm:"column:remaining" json:"remaining"`
 	}
 	views := make([]response, 0)
 	err := uow.DB.Table("deck_cards").Select("deck_cards.deck_id, "+

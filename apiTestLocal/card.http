@@ -32,5 +32,5 @@ Content-Type: application/json
 }
 
 ########GET A DECK
-GET https://{{host}}/decks/46b6b8d1-d0ee-eb52-c9e7-8d8a475267ab
+GET https://{{host}}/decks/de171bec-c1de-0f3f-7379-1ca9e20f7afa
 Content-Type: application/json
