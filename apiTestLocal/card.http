@@ -2,11 +2,35 @@
 GET https://{{host}}/ping
 Content-Type: application/json
 
-#################CREATE DECK
+#################CREATE PARTIAL DECK
+#####IN THE PROBLEM STATEMENT CARDS WAS PASSED IN QUERY PARAM, BUT SINCE I WAS ACCEPTING FIELDS LIKE SHUFFLE AND PARTIAL SO I MOVED IT TO REQUEST BODY
 POST https://{{host}}/decks
 Content-Type: application/json
 
 {
   "shuffle": false,
-  "partial": true
+  "partial": true,
+  "cards": [
+    "8S",
+    "5S"
+  ]
 }
+
+#################CREATE IMPARTIAL SHUFFLED DECK
+POST https://{{host}}/decks
+Content-Type: application/json
+
+{
+  "shuffle": true
+}
+
+#################CREATE DEFAULT DECK
+POST https://{{host}}/decks
+Content-Type: application/json
+
+{
+}
+
+########GET A DECK
+GET https://{{host}}/decks/46b6b8d1-d0ee-eb52-c9e7-8d8a475267ab
+Content-Type: application/json

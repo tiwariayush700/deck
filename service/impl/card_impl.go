@@ -19,10 +19,33 @@ type cardServiceImpl struct {
 	DB             *gorm.DB
 }
 
+func (c *cardServiceImpl) GetDeckView(ctx context.Context, deckID string) (*model.DeckView, error) {
+
+	uow := repository.NewUnitOfWork(c.DB, true)
+	defer uow.Complete()
+
+	deckView, dbErr := c.CardRepository.GetDeckView(ctx, deckID, uow)
+
+	if dbErr != nil {
+		if dbErr.IsRecordNotFoundError() {
+			return nil, api.NewHTTPError(api.ErrorCodeResourceNotFound, "No deck found for the provided id")
+		}
+		return nil, api.NewHTTPError(api.ErrorCodeDatabaseFailure, "Failed to query decks")
+	}
+
+	err := uow.Commit()
+
+	if err != nil {
+		return nil, api.NewHTTPError(api.ErrorCodeInternalError, "Something went wrong")
+	}
+
+	return deckView, nil
+}
+
 func (c *cardServiceImpl) CreateDeck(ctx context.Context, request api.DeckRequest) (*model.Deck, error) {
 
 	//User can not have both partial and shuffle
-	if (request.Partial && request.Shuffle) || (!request.Shuffle && !request.Partial) {
+	if request.Partial && request.Shuffle {
 		return nil, api.NewHTTPError(api.ErrorCodeInvalidRequestPayload, "You cannot have partial and shuffle both")
 	}
 

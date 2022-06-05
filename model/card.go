@@ -97,3 +97,16 @@ func NewDeckCard(deckID string, cardID string) *DeckCard {
 		CardID: cardID,
 	}
 }
+
+type CardView struct {
+	Suit string `json:"suit"`
+	Rank string `json:"value"`
+	Code string `json:"code"`
+}
+
+type DeckView struct {
+	DeckID    string     `gorm:"column:deck_id" json:"deck_id"`
+	Shuffled  bool       `gorm:"column:shuffled" json:"shuffled"`
+	Remaining int        `gorm:"column:remaining" json:"remaining"`
+	Cards     []CardView `gorm:"column:cards" json:"cards"`
+}

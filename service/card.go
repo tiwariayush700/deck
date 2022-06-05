@@ -9,4 +9,5 @@ import (
 
 type Card interface {
 	CreateDeck(ctx context.Context, request api.DeckRequest) (*model.Deck, error)
+	GetDeckView(ctx context.Context, deckID string) (*model.DeckView, error)
 }
