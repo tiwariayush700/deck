@@ -11,6 +11,7 @@ import (
 	`deck/model`
 	`deck/repository`
 	`deck/service`
+	`deck/util`
 )
 
 type cardServiceImpl struct {
@@ -56,6 +57,10 @@ func (c *cardServiceImpl) CreateDeck(ctx context.Context, request api.DeckReques
 			log.Printf("Failed to QueryCards : err %v", dbErr)
 			return nil, api.NewHTTPError(api.ErrorCodeDatabaseFailure, "Something went wrong")
 		}
+	}
+
+	if request.Shuffle {
+		cards = util.Shuffle(cards)
 	}
 
 	deck := model.NewDeck(request.Shuffle, len(cards))
