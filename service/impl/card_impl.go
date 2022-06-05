@@ -33,7 +33,7 @@ func (c *cardServiceImpl) CreateDeck(ctx context.Context, request api.DeckReques
 	var dbErr database.Error
 	if request.Partial {
 		if len(request.Cards) == 0 {
-			return nil, api.NewHTTPError(api.ErrorCodeInvalidRequestPayload, "Please provide cards if you want a partial deck")
+			return nil, api.NewHTTPError(api.ErrorCodeInvalidRequestPayload, "Please provide cards if you want a partial deck˘")
 		}
 		cards, dbErr = c.CardRepository.QueryInCards(ctx, request.Cards, uow)
 		if dbErr != nil {
