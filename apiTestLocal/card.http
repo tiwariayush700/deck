@@ -31,6 +31,10 @@ Content-Type: application/json
 {
 }
 
-########GET A DECK
+########GET A DECK ===> Open a Deck
 GET https://{{host}}/decks/de171bec-c1de-0f3f-7379-1ca9e20f7afa
+Content-Type: application/json
+
+########GET CARDS ====> Draw a Card(s)
+GET https://{{host}}/decks/de171bec-c1de-0f3f-7379-1ca9e20f7afa/cards?count=2
 Content-Type: application/json

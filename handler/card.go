@@ -3,11 +3,13 @@ package handler
 import (
 	`context`
 	`net/http`
+	`strconv`
 
 	`github.com/gin-gonic/gin`
 
 	`deck/core/api`
 	`deck/core/config`
+	`deck/core/constant`
 	`deck/service`
 )
 
@@ -29,6 +31,7 @@ func (h *CardHandler) RegisterRoutes(ctx context.Context, router *gin.Engine) {
 	{
 		decksGroup.POST("", h.CreateDecks(ctx))
 		decksGroup.GET("/:id", h.GetDeck(ctx))
+		decksGroup.GET("/:id/cards", h.GetCards(ctx))
 	}
 }
 
@@ -75,7 +78,7 @@ func (h *CardHandler) GetDeck(ctx context.Context) gin.HandlerFunc {
 			return
 		}
 
-		deckView, err := h.CardService.GetDeckView(ctx, deckID)
+		deckView, err := h.CardService.GetDeckView(ctx, constant.DefaultCardCount, deckID)
 		if err != nil {
 			if e, ok := err.(api.HTTPError); ok {
 				if e.ErrorKey == api.ErrorCodeInvalidRequestPayload {
@@ -96,5 +99,49 @@ func (h *CardHandler) GetDeck(ctx context.Context) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, deckView)
+	}
+}
+
+func (h *CardHandler) GetCards(ctx context.Context) gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		deckID, ok := c.Params.Get("id")
+		if !ok {
+			c.JSON(http.StatusBadRequest, api.NewHTTPError(api.ErrorCodeResourceNotFound, "No deck id passed"))
+			return
+		}
+
+		count := c.Request.FormValue("count")
+		var err error
+		cardCount := 0
+		if len(count) > 0 {
+			cardCount, err = strconv.Atoi(count)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, api.NewHTTPError(api.ErrorCodeInvalidFields, "Invalid count provided"))
+				return
+			}
+		}
+
+		deckView, err := h.CardService.GetDeckView(ctx, cardCount, deckID)
+		if err != nil {
+			if e, ok := err.(api.HTTPError); ok {
+				if e.ErrorKey == api.ErrorCodeInvalidRequestPayload {
+					c.JSON(http.StatusBadRequest, e)
+					return
+				}
+				if e.ErrorKey == api.ErrorCodeResourceNotFound {
+					c.JSON(http.StatusNotFound, e)
+					return
+				}
+				if e.ErrorKey == api.ErrorCodeInternalError {
+					c.JSON(http.StatusInternalServerError, e)
+					return
+				}
+			}
+			c.JSON(http.StatusBadRequest, api.NewHTTPError(api.ErrorCodeUnexpected, "Failed to Fetch cards"))
+			return
+		}
+
+		c.JSON(http.StatusOK, deckView.Cards)
 	}
 }

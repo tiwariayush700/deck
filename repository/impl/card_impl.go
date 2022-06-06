@@ -15,7 +15,8 @@ type cardRepositoryImpl struct {
 	repositoryImpl
 }
 
-func (c *cardRepositoryImpl) GetDeckView(ctx context.Context, deckID string, uow *repository.UnitOfWork) (*model.DeckView, database.Error) {
+//todo add count param
+func (c *cardRepositoryImpl) GetDeckView(ctx context.Context, deckID string, count int, uow *repository.UnitOfWork) (*model.DeckView, database.Error) {
 
 	type response struct {
 		DeckID    string     `gorm:"column:deck_id" json:"deck_id"`
@@ -33,6 +34,7 @@ func (c *cardRepositoryImpl) GetDeckView(ctx context.Context, deckID string, uow
 		Joins("INNER JOIN decks on deck_cards.deck_id = decks.id").
 		Joins("INNER JOIN cards on deck_cards.card_id = cards.id").
 		Where("deck_id = ?", deckID).
+		Limit(count).
 		Order("deck_cards.sequence_id asc").
 		Find(&views).Error
 	if err != nil {

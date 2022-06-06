@@ -19,12 +19,12 @@ type cardServiceImpl struct {
 	DB             *gorm.DB
 }
 
-func (c *cardServiceImpl) GetDeckView(ctx context.Context, deckID string) (*model.DeckView, error) {
+func (c *cardServiceImpl) GetDeckView(ctx context.Context, count int, deckID string) (*model.DeckView, error) {
 
 	uow := repository.NewUnitOfWork(c.DB, true)
 	defer uow.Complete()
 
-	deckView, dbErr := c.CardRepository.GetDeckView(ctx, deckID, uow)
+	deckView, dbErr := c.CardRepository.GetDeckView(ctx, deckID, count, uow)
 
 	if dbErr != nil {
 		if dbErr.IsRecordNotFoundError() {
