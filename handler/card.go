@@ -31,7 +31,7 @@ func (h *CardHandler) RegisterRoutes(ctx context.Context, router *gin.Engine) {
 	{
 		decksGroup.POST("", h.CreateDecks(ctx))
 		decksGroup.GET("/:id", h.GetDeck(ctx))
-		decksGroup.GET("/:id/cards", h.GetCards(ctx))
+		decksGroup.PATCH("/:id", h.DrawCards(ctx))
 	}
 }
 
@@ -102,7 +102,7 @@ func (h *CardHandler) GetDeck(ctx context.Context) gin.HandlerFunc {
 	}
 }
 
-func (h *CardHandler) GetCards(ctx context.Context) gin.HandlerFunc {
+func (h *CardHandler) DrawCards(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		deckID, ok := c.Params.Get("id")
@@ -123,6 +123,33 @@ func (h *CardHandler) GetCards(ctx context.Context) gin.HandlerFunc {
 		}
 
 		deckView, err := h.CardService.GetDeckView(ctx, cardCount, deckID)
+
+		if err != nil {
+			if e, ok := err.(api.HTTPError); ok {
+				if e.ErrorKey == api.ErrorCodeInvalidRequestPayload {
+					c.JSON(http.StatusBadRequest, e)
+					return
+				}
+				if e.ErrorKey == api.ErrorCodeResourceNotFound {
+					c.JSON(http.StatusNotFound, e)
+					return
+				}
+				if e.ErrorKey == api.ErrorCodeInternalError {
+					c.JSON(http.StatusInternalServerError, e)
+					return
+				}
+			}
+			c.JSON(http.StatusBadRequest, api.NewHTTPError(api.ErrorCodeUnexpected, "Failed to Fetch cards"))
+			return
+		}
+
+		cardIDs := make([]string, 0)
+		for _, card := range deckView.Cards {
+			cardIDs = append(cardIDs, card.Code)
+		}
+
+		err = h.CardService.DrawCards(ctx, deckID, cardIDs)
+
 		if err != nil {
 			if e, ok := err.(api.HTTPError); ok {
 				if e.ErrorKey == api.ErrorCodeInvalidRequestPayload {

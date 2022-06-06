@@ -15,6 +15,19 @@ type cardRepositoryImpl struct {
 	repositoryImpl
 }
 
+func (c *cardRepositoryImpl) DeleteCardsFromDeck(ctx context.Context, deckID string, cardIDs []string, uow *repository.UnitOfWork) database.Error {
+
+	log.Printf("CardIds => %v", cardIDs)
+	updatedCount := uow.DB.Where(" deck_id = ? AND card_id IN ? ", deckID, cardIDs).Delete(&model.DeckCard{}).RowsAffected
+	if updatedCount == 0 {
+		return database.NewError(gorm.ErrRecordNotFound)
+	}
+
+	err := uow.DB.Model(&model.Deck{}).Where("id = ? ", deckID).Update("remaining", gorm.Expr("remaining - ?", updatedCount)).Error
+
+	return database.NewError(err)
+}
+
 //todo add count param
 func (c *cardRepositoryImpl) GetDeckView(ctx context.Context, deckID string, count int, uow *repository.UnitOfWork) (*model.DeckView, database.Error) {
 
@@ -33,7 +46,7 @@ func (c *cardRepositoryImpl) GetDeckView(ctx context.Context, deckID string, cou
 		"cards.* as cards").
 		Joins("INNER JOIN decks on deck_cards.deck_id = decks.id").
 		Joins("INNER JOIN cards on deck_cards.card_id = cards.id").
-		Where("deck_id = ?", deckID).
+		Where("deck_id = ? and deck_cards.deleted_at IS NULL", deckID).
 		Limit(count).
 		Order("deck_cards.sequence_id asc").
 		Find(&views).Error

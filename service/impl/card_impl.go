@@ -19,6 +19,27 @@ type cardServiceImpl struct {
 	DB             *gorm.DB
 }
 
+func (c *cardServiceImpl) DrawCards(ctx context.Context, deckID string, cardIDs []string) error {
+	uow := repository.NewUnitOfWork(c.DB, false)
+	defer uow.Complete()
+
+	dbErr := c.CardRepository.DeleteCardsFromDeck(ctx, deckID, cardIDs, uow)
+	if dbErr != nil {
+		if dbErr.IsRecordNotFoundError() {
+			return api.NewHTTPError(api.ErrorCodeResourceNotFound, "No deck found for the provided id")
+		}
+		return api.NewHTTPError(api.ErrorCodeDatabaseFailure, "Failed to draw cards")
+	}
+
+	err := uow.Commit()
+
+	if err != nil {
+		return api.NewHTTPError(api.ErrorCodeInternalError, "Something went wrong")
+	}
+
+	return nil
+}
+
 func (c *cardServiceImpl) GetDeckView(ctx context.Context, count int, deckID string) (*model.DeckView, error) {
 
 	uow := repository.NewUnitOfWork(c.DB, true)
@@ -31,6 +52,10 @@ func (c *cardServiceImpl) GetDeckView(ctx context.Context, count int, deckID str
 			return nil, api.NewHTTPError(api.ErrorCodeResourceNotFound, "No deck found for the provided id")
 		}
 		return nil, api.NewHTTPError(api.ErrorCodeDatabaseFailure, "Failed to query decks")
+	}
+
+	if len(deckView.Cards) == 0 {
+		return nil, api.NewHTTPError(api.ErrorCodeResourceNotFound, "Sorry, all cards are already drawn out of this deck")
 	}
 
 	err := uow.Commit()
