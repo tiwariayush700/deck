@@ -32,9 +32,9 @@ Content-Type: application/json
 }
 
 ########GET A DECK ===> Open a Deck
-GET https://{{host}}/decks/c3d86303-8684-661e-1efd-58410a8860e7
+GET https://{{host}}/decks/c0b3b523-2724-c6c3-49af-18c4cee70e31
 Content-Type: application/json
 
 ########DRAW CARD(S)
-PATCH https://{{host}}/decks/c3d86303-8684-661e-1efd-58410a8860e7?count=9
+PATCH https://{{host}}/decks/c0b3b523-2724-c6c3-49af-18c4cee70e31?count=9
 Content-Type: application/json

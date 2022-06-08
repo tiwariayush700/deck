@@ -12,6 +12,7 @@ import (
 	`deck/core/database`
 	`deck/handler`
 	`deck/model`
+	`deck/repository`
 	repositoryImpl `deck/repository/impl`
 	`deck/service/impl`
 	`deck/util`
@@ -21,23 +22,25 @@ type app struct {
 	router        *gin.Engine
 	configuration *config.Config
 	pgDB          *gorm.DB
+	repository    repository.Repository
 }
 
-func newApp(router *gin.Engine, configuration *config.Config, pgDB *gorm.DB) *app {
+func newApp(router *gin.Engine, configuration *config.Config, pgDB *gorm.DB, repository repository.Repository) *app {
 	return &app{
 		router:        router,
 		configuration: configuration,
 		pgDB:          pgDB,
+		repository:    repository,
 	}
 }
 
 func (a *app) start(ctx context.Context) {
 
 	//cardRepository
-	cardRepository := repositoryImpl.NewCardRepositoryImpl()
+	cardRepository := repositoryImpl.NewCardRepositoryImpl(a.pgDB)
 
 	//cardService
-	cardService := impl.NewCardServiceImpl(cardRepository, a.pgDB)
+	cardService := impl.NewCardServiceImpl(cardRepository)
 
 	//cardHandler
 	cardHandler := handler.NewCardHandler(cardService, a.configuration)

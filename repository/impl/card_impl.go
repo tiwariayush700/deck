@@ -13,9 +13,44 @@ import (
 
 type cardRepositoryImpl struct {
 	repositoryImpl
+	db *gorm.DB
 }
 
-func (c *cardRepositoryImpl) DeleteCardsFromDeck(ctx context.Context, deckID string, cardIDs []string, uow *repository.UnitOfWork) database.Error {
+func (c *cardRepositoryImpl) CreateDeckCards(ctx context.Context, deck *model.Deck, cards []model.Card) database.Error {
+
+	uow := repository.NewUnitOfWork(c.db, false)
+	defer uow.Complete()
+
+	dbErr := uow.DB.Create(deck).Error
+	if dbErr != nil {
+		log.Printf("Failed to Create deck : err %v", dbErr)
+		return database.NewError(dbErr)
+	}
+
+	deckCards := make([]model.DeckCard, 0)
+	for _, card := range cards {
+		deckCards = append(deckCards, *model.NewDeckCard(deck.ID, card.ID))
+	}
+
+	dbErr = uow.DB.Create(&deckCards).Error
+	if dbErr != nil {
+		log.Printf("Failed to Create deckCards : err %v", dbErr)
+		return database.NewError(dbErr)
+	}
+
+	err := uow.Commit()
+	if err != nil {
+		log.Printf("Failed to commit unit of work : err %v", err)
+		return database.NewError(err)
+	}
+
+	return nil
+}
+
+func (c *cardRepositoryImpl) DeleteCardsFromDeck(ctx context.Context, deckID string, cardIDs []string) database.Error {
+
+	uow := repository.NewUnitOfWork(c.db, false)
+	defer uow.Complete()
 
 	log.Printf("CardIds => %v", cardIDs)
 	updatedCount := uow.DB.Where(" deck_id = ? AND card_id IN ? ", deckID, cardIDs).Delete(&model.DeckCard{}).RowsAffected
@@ -23,13 +58,23 @@ func (c *cardRepositoryImpl) DeleteCardsFromDeck(ctx context.Context, deckID str
 		return database.NewError(gorm.ErrRecordNotFound)
 	}
 
-	err := uow.DB.Model(&model.Deck{}).Where("id = ? ", deckID).Update("remaining", gorm.Expr("remaining - ?", updatedCount)).Error
+	dbErr := uow.DB.Model(&model.Deck{}).Where("id = ? ", deckID).Update("remaining", gorm.Expr("remaining - ?", updatedCount)).Error
+	if dbErr != nil {
+		log.Printf("Failed to Update remaining count : err %v", dbErr)
+		return database.NewError(dbErr)
+	}
 
-	return database.NewError(err)
+	err := uow.Commit()
+	if err != nil {
+		log.Printf("Failed to commit unit of work : err %v", err)
+		return database.NewError(err)
+	}
+
+	return nil
 }
 
 //todo add count param
-func (c *cardRepositoryImpl) GetDeckView(ctx context.Context, deckID string, count int, uow *repository.UnitOfWork) (*model.DeckView, database.Error) {
+func (c *cardRepositoryImpl) GetDeckView(ctx context.Context, deckID string, count int) (*model.DeckView, database.Error) {
 
 	type response struct {
 		DeckID    string     `gorm:"column:deck_id" json:"deck_id"`
@@ -40,7 +85,7 @@ func (c *cardRepositoryImpl) GetDeckView(ctx context.Context, deckID string, cou
 		Remaining int        `gorm:"column:remaining" json:"remaining"`
 	}
 	views := make([]response, 0)
-	err := uow.DB.Table("deck_cards").Select("deck_cards.deck_id, "+
+	err := c.db.Table("deck_cards").Select("deck_cards.deck_id, "+
 		"decks.shuffled as shuffled, "+
 		"decks.remaining as remaining, "+
 		"cards.* as cards").
@@ -67,9 +112,9 @@ func (c *cardRepositoryImpl) GetDeckView(ctx context.Context, deckID string, cou
 	return &deckView, nil
 }
 
-func (c *cardRepositoryImpl) QueryInCards(ctx context.Context, v []string, uow *repository.UnitOfWork) ([]model.Card, database.Error) {
+func (c *cardRepositoryImpl) QueryInCards(ctx context.Context, v []string) ([]model.Card, database.Error) {
 	cards := make([]model.Card, 0)
-	err := uow.DB.Where("code IN ?", v).Find(&cards).Error
+	err := c.db.Where("code IN ?", v).Find(&cards).Error
 	if err != nil {
 		log.Println("QueryInCards : err : ", err)
 		return nil, database.NewError(err)
@@ -82,9 +127,9 @@ func (c *cardRepositoryImpl) QueryInCards(ctx context.Context, v []string, uow *
 	return cards, nil
 }
 
-func (c *cardRepositoryImpl) QueryCards(ctx context.Context, params map[string]interface{}, filter string, uow *repository.UnitOfWork) ([]model.Card, database.Error) {
+func (c *cardRepositoryImpl) QueryCards(ctx context.Context, params map[string]interface{}, filter string) ([]model.Card, database.Error) {
 	cards := make([]model.Card, 0)
-	err := uow.DB.Table("cards").
+	err := c.db.Table("cards").
 		Select("cards.*").
 		Where(params).
 		Where(filter).
@@ -102,6 +147,6 @@ func (c *cardRepositoryImpl) QueryCards(ctx context.Context, params map[string]i
 	return cards, nil
 }
 
-func NewCardRepositoryImpl() repository.CardRepository {
-	return &cardRepositoryImpl{}
+func NewCardRepositoryImpl(db *gorm.DB) repository.CardRepository {
+	return &cardRepositoryImpl{db: db}
 }

@@ -9,10 +9,10 @@ import (
 )
 
 type Repository interface {
-	Create(ctx context.Context, out interface{}, uow *UnitOfWork) database.Error
-	Get(ctx context.Context, out interface{}, id interface{}, uow *UnitOfWork) database.Error
-	Update(ctx context.Context, out interface{}, id interface{}, uow *UnitOfWork) database.Error
-	Delete(ctx context.Context, out interface{}, id interface{}, uow *UnitOfWork) database.Error //soft delete
+	Create(ctx context.Context, out interface{}) database.Error
+	Get(ctx context.Context, out interface{}, id interface{}) database.Error
+	Update(ctx context.Context, out interface{}, id interface{}) database.Error
+	Delete(ctx context.Context, out interface{}, id interface{}) database.Error //soft delete
 }
 
 // UnitOfWork represents a connection

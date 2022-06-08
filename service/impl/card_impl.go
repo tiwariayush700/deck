@@ -4,8 +4,6 @@ import (
 	`context`
 	`log`
 
-	`gorm.io/gorm`
-
 	`deck/core/api`
 	`deck/core/database`
 	`deck/model`
@@ -16,14 +14,12 @@ import (
 
 type cardServiceImpl struct {
 	CardRepository repository.CardRepository
-	DB             *gorm.DB
 }
 
 func (c *cardServiceImpl) DrawCards(ctx context.Context, deckID string, cardIDs []string) error {
-	uow := repository.NewUnitOfWork(c.DB, false)
-	defer uow.Complete()
 
-	dbErr := c.CardRepository.DeleteCardsFromDeck(ctx, deckID, cardIDs, uow)
+	dbErr := c.CardRepository.DeleteCardsFromDeck(ctx, deckID, cardIDs)
+
 	if dbErr != nil {
 		if dbErr.IsRecordNotFoundError() {
 			return api.NewHTTPError(api.ErrorCodeResourceNotFound, "No deck found for the provided id")
@@ -31,21 +27,12 @@ func (c *cardServiceImpl) DrawCards(ctx context.Context, deckID string, cardIDs 
 		return api.NewHTTPError(api.ErrorCodeDatabaseFailure, "Failed to draw cards")
 	}
 
-	err := uow.Commit()
-
-	if err != nil {
-		return api.NewHTTPError(api.ErrorCodeInternalError, "Something went wrong")
-	}
-
 	return nil
 }
 
 func (c *cardServiceImpl) GetDeckView(ctx context.Context, count int, deckID string) (*model.DeckView, error) {
 
-	uow := repository.NewUnitOfWork(c.DB, true)
-	defer uow.Complete()
-
-	deckView, dbErr := c.CardRepository.GetDeckView(ctx, deckID, count, uow)
+	deckView, dbErr := c.CardRepository.GetDeckView(ctx, deckID, count)
 
 	if dbErr != nil {
 		if dbErr.IsRecordNotFoundError() {
@@ -58,12 +45,6 @@ func (c *cardServiceImpl) GetDeckView(ctx context.Context, count int, deckID str
 		return nil, api.NewHTTPError(api.ErrorCodeResourceNotFound, "Sorry, all cards are already drawn out of this deck")
 	}
 
-	err := uow.Commit()
-
-	if err != nil {
-		return nil, api.NewHTTPError(api.ErrorCodeInternalError, "Something went wrong")
-	}
-
 	return deckView, nil
 }
 
@@ -74,9 +55,6 @@ func (c *cardServiceImpl) CreateDeck(ctx context.Context, request api.DeckReques
 		return nil, api.NewHTTPError(api.ErrorCodeInvalidRequestPayload, "You cannot have partial and shuffle both")
 	}
 
-	uow := repository.NewUnitOfWork(c.DB, false)
-	defer uow.Complete()
-
 	cards := make([]model.Card, 0)
 	params := make(map[string]interface{})
 	var dbErr database.Error
@@ -84,7 +62,7 @@ func (c *cardServiceImpl) CreateDeck(ctx context.Context, request api.DeckReques
 		if len(request.Cards) == 0 {
 			return nil, api.NewHTTPError(api.ErrorCodeInvalidRequestPayload, "Please provide cards if you want a partial deck˘")
 		}
-		cards, dbErr = c.CardRepository.QueryInCards(ctx, request.Cards, uow)
+		cards, dbErr = c.CardRepository.QueryInCards(ctx, request.Cards)
 		if dbErr != nil {
 			if dbErr.IsRecordNotFoundError() {
 				return nil, api.NewHTTPError(api.ErrorCodeResourceNotFound, "No cards found for the provided codes")
@@ -97,7 +75,8 @@ func (c *cardServiceImpl) CreateDeck(ctx context.Context, request api.DeckReques
 			return nil, api.NewHTTPError(api.ErrorCodeResourceNotFound, "No cards found for the provided codes")
 		}
 	} else {
-		cards, dbErr = c.CardRepository.QueryCards(ctx, params, "", uow)
+		cards, dbErr = c.CardRepository.QueryCards(ctx, params, "")
+
 		if dbErr != nil {
 			if dbErr.IsRecordNotFoundError() {
 				return nil, api.NewHTTPError(api.ErrorCodeResourceNotFound, "No cards found for the provided codes")
@@ -112,32 +91,16 @@ func (c *cardServiceImpl) CreateDeck(ctx context.Context, request api.DeckReques
 	}
 
 	deck := model.NewDeck(request.Shuffle, len(cards))
-	dbErr = c.CardRepository.Create(ctx, deck, uow)
+	dbErr = c.CardRepository.CreateDeckCards(ctx, deck, cards)
+
 	if dbErr != nil {
 		log.Printf("Failed to Create deck : err %v", dbErr)
 		return nil, api.NewHTTPError(api.ErrorCodeDatabaseFailure, "Something went wrong while creating deck")
 	}
 
-	deckCards := make([]model.DeckCard, 0)
-	for _, card := range cards {
-		deckCards = append(deckCards, *model.NewDeckCard(deck.ID, card.ID))
-	}
-
-	dbErr = c.CardRepository.Create(ctx, &deckCards, uow)
-	if dbErr != nil {
-		log.Printf("Failed to Create deckCards : err %v", dbErr)
-		return nil, api.NewHTTPError(api.ErrorCodeDatabaseFailure, "Something went wrong while creating deck cards")
-	}
-
-	err := uow.Commit()
-	if err != nil {
-		log.Printf("Failed to commit unit of work : err %v", dbErr)
-		return nil, api.NewHTTPError(api.ErrorCodeDatabaseFailure, "Something went wrong")
-	}
-
 	return deck, nil
 }
 
-func NewCardServiceImpl(cardRepository repository.CardRepository, db *gorm.DB) service.Card {
-	return &cardServiceImpl{CardRepository: cardRepository, DB: db}
+func NewCardServiceImpl(cardRepository repository.CardRepository) service.Card {
+	return &cardServiceImpl{CardRepository: cardRepository}
 }
