@@ -617,6 +617,7 @@ func Test_repositoryImpl_Create(t *testing.T) {
 	}
 }
 
+//nolint
 func Test_repositoryImpl_Delete(t *testing.T) {
 
 	id, _ := uuid.GenerateUUID()

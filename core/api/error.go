@@ -5,24 +5,12 @@ import (
 )
 
 const (
-	// ErrorCodeAPICallFailure error code for API call failure
-	ErrorCodeAPICallFailure = "Key_APICallFailure"
 	// ErrorCodeDatabaseFailure error code for database failure
 	ErrorCodeDatabaseFailure = "Key_DBQueryFailure"
-	// ErrorCodeDuplicateValue error code for duplicate value
-	ErrorCodeDuplicateValue = "Key_AlreadyExists"
-	// ErrorCodeEmptyRequestBody error code for empty request body
-	ErrorCodeEmptyRequestBody = "Key_EmptyRequestBody"
-	// ErrorCodeHTTPCreateRequestFailure error code for http request creation failure
-	ErrorCodeHTTPCreateRequestFailure = "Key_HTTPCreateRequestFailure"
-	// ErrorCodeInvalidFormData error code for form parsing error
-	ErrorCodeInvalidFormData = "Key_InvalidFormData"
 	// ErrorCodeInternalError error code for internal error
 	ErrorCodeInternalError = "Key_InternalError"
 	// ErrorCodeInvalidFields error code for invalid fields
 	ErrorCodeInvalidFields = "Key_InvalidFields"
-	// ErrorCodeInvalidJSON error code for invalid JSON
-	ErrorCodeInvalidJSON = "Key_InvalidJSON"
 	// ErrorCodeInvalidRequestPayload error code for invalid request payload
 	ErrorCodeInvalidRequestPayload = "Key_InvalidRequestPayload"
 	// ErrorCodeResourceNotFound error code for invalid request payload
