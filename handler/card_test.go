@@ -1,146 +1,167 @@
 package handler
 
 import (
-	`context`
-	`reflect`
+	`net/http`
+	`net/http/httptest`
+	`strings`
 	`testing`
 
 	`github.com/gin-gonic/gin`
+	`github.com/stretchr/testify/assert`
 
+	`deck/core/api`
 	`deck/core/config`
-	`deck/service`
+	`deck/mocks`
+	`deck/model`
 )
 
 func TestCardHandler_CreateDecks(t *testing.T) {
-	type fields struct {
-		CardService   service.Card
-		Configuration *config.Config
-	}
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   gin.HandlerFunc
+	cases := map[string]struct {
+		payload            string
+		servicePayload     api.DeckRequest
+		expectedStatusCode int
 	}{
-		// TODO: Add test cases.
+		"success": {
+			payload: `
+				{
+					"partial": true,
+					"cards": []{"AS"}
+				}
+			`,
+			servicePayload: api.DeckRequest{
+				Partial: true,
+				Cards:   []string{"AS"},
+			},
+			expectedStatusCode: http.StatusOK,
+		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := &CardHandler{
-				CardService:   tt.fields.CardService,
-				Configuration: tt.fields.Configuration,
-			}
-			if got := h.CreateDecks(tt.args.ctx); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CreateDecks() = %v, want %v", got, tt.want)
-			}
+
+	for caseTitle, tc := range cases {
+		t.Run(caseTitle, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			body := strings.NewReader(tc.payload)
+			c.Request, _ = http.NewRequest("POST", "/decks", body)
+
+			cardService := new(mocks.Card)
+
+			cardService.On(
+				"CreateDeck",
+				c,
+				tc.servicePayload,
+			).Return(
+				model.Deck{
+					Shuffled:  false,
+					Remaining: 1,
+				},
+				nil,
+			)
+
+			cardHandler := NewCardHandler(cardService, &config.Config{})
+			cardHandler.CreateDecks(c)
+
+			assert.Equal(t, tc.expectedStatusCode, w.Code)
 		})
 	}
 }
 
 func TestCardHandler_DrawCards(t *testing.T) {
-	type fields struct {
-		CardService   service.Card
-		Configuration *config.Config
-	}
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   gin.HandlerFunc
+	cases := map[string]struct {
+		payload            string
+		servicePayload     api.DeckRequest
+		expectedStatusCode int
 	}{
-		// TODO: Add test cases.
+		"success": {
+			expectedStatusCode: http.StatusOK,
+		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := &CardHandler{
-				CardService:   tt.fields.CardService,
-				Configuration: tt.fields.Configuration,
-			}
-			if got := h.DrawCards(tt.args.ctx); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DrawCards() = %v, want %v", got, tt.want)
-			}
+
+	for caseTitle, tc := range cases {
+		t.Run(caseTitle, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			body := strings.NewReader(tc.payload)
+			c.Request, _ = http.NewRequest("PATCH", "/decks/deckId?count=1", body)
+
+			cardService := new(mocks.Card)
+
+			cardService.On(
+				"GetDeckView",
+				c,
+				1,
+				"deckId",
+			).Return(
+				model.DeckView{
+					Shuffled:  false,
+					Remaining: 1,
+					Cards: []model.CardView{{
+						Suit: model.Spade.String(),
+						Rank: model.Ace.String(),
+						Code: "AS",
+					}},
+				},
+				nil,
+			)
+
+			cardService.On(
+				"DrawCards",
+				c,
+				"deckId",
+				[]string{"AS"},
+			).Return(
+				nil,
+			)
+
+			cardHandler := NewCardHandler(cardService, &config.Config{})
+			cardHandler.DrawCards(c)
+
+			assert.Equal(t, tc.expectedStatusCode, w.Code)
 		})
 	}
 }
 
 func TestCardHandler_GetDeck(t *testing.T) {
-	type fields struct {
-		CardService   service.Card
-		Configuration *config.Config
-	}
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   gin.HandlerFunc
+	cases := map[string]struct {
+		payload            string
+		servicePayload     api.DeckRequest
+		expectedStatusCode int
 	}{
-		// TODO: Add test cases.
+		"success": {
+			expectedStatusCode: http.StatusOK,
+		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := &CardHandler{
-				CardService:   tt.fields.CardService,
-				Configuration: tt.fields.Configuration,
-			}
-			if got := h.GetDeck(tt.args.ctx); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetDeck() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
 
-func TestCardHandler_RegisterRoutes(t *testing.T) {
-	type fields struct {
-		CardService   service.Card
-		Configuration *config.Config
-	}
-	type args struct {
-		ctx    context.Context
-		router *gin.Engine
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := &CardHandler{
-				CardService:   tt.fields.CardService,
-				Configuration: tt.fields.Configuration,
-			}
-		})
-	}
-}
+	for caseTitle, tc := range cases {
+		t.Run(caseTitle, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			body := strings.NewReader(tc.payload)
+			c.Request, _ = http.NewRequest("PATCH", "/decks/deckId", body)
 
-func TestNewCardHandler(t *testing.T) {
-	type args struct {
-		cardService   service.Card
-		configuration *config.Config
-	}
-	tests := []struct {
-		name string
-		args args
-		want *CardHandler
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewCardHandler(tt.args.cardService, tt.args.configuration); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewCardHandler() = %v, want %v", got, tt.want)
-			}
+			cardService := new(mocks.Card)
+
+			cardService.On(
+				"GetDeckView",
+				c,
+				1,
+				"deckId",
+			).Return(
+				model.DeckView{
+					Shuffled:  false,
+					Remaining: 1,
+					Cards: []model.CardView{{
+						Suit: model.Spade.String(),
+						Rank: model.Ace.String(),
+						Code: "AS",
+					}},
+				},
+				nil,
+			)
+
+			cardHandler := NewCardHandler(cardService, &config.Config{})
+			cardHandler.GetDeck(c)
+
+			assert.Equal(t, tc.expectedStatusCode, w.Code)
 		})
 	}
 }
