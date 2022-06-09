@@ -59,14 +59,14 @@ type Deck struct {
 }
 
 func NewDeck(shuffled bool, remaining int) *Deck {
-	deckID, _ := uuid.GenerateUUID()
+	//deckID, _ := uuid.GenerateUUID()
 
 	return &Deck{
-		BaseModel: database.BaseModel{
-			ID:        deckID,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
+		//BaseModel: database.BaseModel{
+		//	ID:        deckID,
+		//	CreatedAt: time.Now(),
+		//	UpdatedAt: time.Now(),
+		//},
 		Shuffled:  shuffled,
 		Remaining: remaining,
 	}

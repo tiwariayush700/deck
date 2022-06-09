@@ -4,5 +4,6 @@
   "postgres_password": "Vm28xMykxKM",
   "postgres_server": "localhost",
   "postgres_port": "5431",
-  "postgres_db": "deck_db"
+  "postgres_db": "deck_db",
+  "test_postgres_db": "deck_test_db"
 }

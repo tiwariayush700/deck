@@ -1,12 +1,14 @@
-version: '3'
+version: '3.7'
 services:
   database:
-    image: postgres
+    image: postgres:latest
     ports:
       - "5431:5432"
     environment:
       POSTGRES_USER: deck_user
       POSTGRES_PASSWORD: Vm28xMykxKM
+      POSTGRES_MULTIPLE_DATABASES: deck_db,deck_test_db
       POSTGRES_DB: deck_db
+      POSTGRES_SCHEMAS: deck,test
     volumes:
       - ./.postgresql-data:/var/lib/postgresql/data/ # persist data even if container shuts down

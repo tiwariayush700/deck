@@ -3,7 +3,9 @@ package impl
 import (
 	`context`
 	`log`
+	`time`
 
+	`github.com/hashicorp/go-uuid`
 	`gorm.io/gorm`
 
 	`deck/core/database`
@@ -21,6 +23,16 @@ func (c *cardRepositoryImpl) CreateDeckCards(ctx context.Context, deck *model.De
 	uow := repository.NewUnitOfWork(c.db, false)
 	defer uow.Complete()
 
+	deckID, _ := uuid.GenerateUUID()
+	if len(deck.ID) > 0 {
+		deckID = deck.ID
+	}
+
+	deck.BaseModel = database.BaseModel{
+		ID:        deckID,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
 	dbErr := uow.DB.Create(deck).Error
 	if dbErr != nil {
 		log.Printf("Failed to Create deck : err %v", dbErr)
@@ -108,6 +120,10 @@ func (c *cardRepositoryImpl) GetDeckView(ctx context.Context, deckID string, cou
 		cards = append(cards, model.CardView{Code: view.Code, Rank: view.Rank.String(), Suit: view.Suit.String()})
 	}
 	deckView.Cards = cards
+
+	if len(deckView.Cards) == 0 {
+		return nil, database.NewError(gorm.ErrRecordNotFound)
+	}
 
 	return &deckView, nil
 }

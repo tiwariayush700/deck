@@ -23,6 +23,7 @@ type PGConfig struct {
 	PostgresServer   string `json:"postgres_server"`
 	PostgresPort     string `json:"postgres_port"`
 	PostgresDB       string `json:"postgres_db"`
+	TestPostgresDB   string `json:"test_postgres_db"`
 }
 
 var (

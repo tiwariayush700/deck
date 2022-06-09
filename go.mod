@@ -3,6 +3,7 @@ module deck
 go 1.16
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/gin-gonic/gin v1.8.0
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/jinzhu/now v1.1.5 // indirect

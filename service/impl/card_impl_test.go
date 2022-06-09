@@ -2,7 +2,6 @@ package impl
 
 import (
 	`context`
-	`fmt`
 	`reflect`
 	`testing`
 
@@ -133,11 +132,6 @@ func Test_cardServiceImpl_CreateDeck(t *testing.T) {
 						tt.args.ctx, getTestDeck(tt.args.request.Shuffle, 2),
 						getPartialCardsData()).
 					Return(nil)
-			default:
-				tt.fields.CardRepository.
-					On("QueryInCards",
-						tt.args.ctx, tt.args.request.Cards).
-					Return(nil, database.NewError(fmt.Errorf("err")))
 			}
 
 			got, err := c.CreateDeck(tt.args.ctx, tt.args.request)
@@ -281,10 +275,10 @@ func getPartialCardsData() []model.Card {
 }
 
 func getTestDeck(shuffled bool, remaining int) *model.Deck {
-	deckID := "b74a19f0-e412-6756-7693-c3dc20ad7653"
+	//deckID := ""
 
 	return &model.Deck{
-		BaseModel: database.BaseModel{ID: deckID},
+		//BaseModel: database.BaseModel{ID: deckID},
 		Shuffled:  shuffled,
 		Remaining: remaining,
 	}
